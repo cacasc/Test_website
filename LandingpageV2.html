@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Know Your Coaching</title>
+  <link rel="stylesheet" href="Style/styleKYC.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+
+    .search-bar {
+      position: relative;
+      max-width: 500px;
+      margin: 20px 0;
+    }
+
+    .search-bar input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    .dropdown-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      margin-top: 5px;
+      z-index: 1000;
+      max-height: 200px;
+      overflow-y: auto;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .dropdown-item {
+      padding: 10px;
+      cursor: pointer;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .dropdown-item:last-child {
+      border-bottom: none;
+    }
+
+    .dropdown-item:hover {
+      background-color: #f0f0f0;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Header Section -->
+  <header class="header">
+    <div class="logo-container">
+      <img src="assets/Images/Logo.png" alt="Logo" class="logo">
+    </div>
+  </header>
+
+  <div class="content">
+    <h1>List of Programs</h1>
+    <p>Compare coaching institutes for your entrance exams, prices, ratings, and more.</p>
+
+    <!-- Search Bar -->
+    <div class="search-bar">
+      <input id="searchInput" type="text" placeholder="Search for exams..." oninput="performSearch()">
+      <div id="dropdownResults" class="dropdown-results"></div>
+    </div>
+
+    <!-- Program Grid -->
+    <div class="program-grid">
+      <a href="Filterspage.html?exam=CAT" class="program-card">
+        <img src="https://via.placeholder.com/300x200" alt="CAT and OMETS">
+        <div class="details">
+          <h3>CAT and Other Management Entrance Exams</h3>
+          <p>CAT, XAT, NMIMS, CET, and others</p>
+        </div>
+      </a>
+      <a href="Test7.html?exam=EEE" class="program-card">
+        <img src="https://via.placeholder.com/300x200" alt="Engineering Entrance Exams">
+        <div class="details">
+          <h3>Engineering Entrance Exams</h3>
+          <p>IIT JEE, BITS, VIT, MH-CET, and others</p>
+        </div>
+      </a>
+      <a href="Test7.html?exam=NEET" class="program-card">
+        <img src="https://via.placeholder.com/300x200" alt="NEET">
+        <div class="details">
+          <h3>NEET</h3>
+          <p>NEET</p>
+        </div>
+      </a>
+      <a href="Test7.html?exam=StudyAbroad" class="program-card">
+        <img src="https://via.placeholder.com/300x200" alt="Study Abroad Exams">
+        <div class="details">
+          <h3>GMAT/GRE/TOEFL/IELTS</h3>
+          <p>GMAT/GRE/TOEFL/IELTS</p>
+        </div>
+      </a>
+      <a href="Filterspage.html?exam=UPSC" class="program-card">
+        <img src="https://via.placeholder.com/300x200" alt="Civil Services Exams">
+        <div class="details">
+          <h3>Civil Services Exams</h3>
+          <p>UPSC, SSC, and others</p>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- JavaScript Section -->
+  <script>
+    // Predefined list of exams and their links
+    const exams = [
+      { name: "IIT JEE Mains", link: "Test7.html?exam=JEE_Mains" },
+      { name: "IIT JEE Advanced", link: "Test7.html?exam=JEE_Advanced" },
+      { name: "CAT", link: "Filterspage.html?exam=CAT" },
+      { name: "NEET", link: "Test7.html?exam=NEET" },
+      { name: "UPSC CSE", link: "Filterspage.html?exam=UPSC" },
+      { name: "GMAT", link: "Test7.html?exam=GMAT" },
+      { name: "GRE", link: "Test7.html?exam=GRE" },
+      { name: "TOEFL", link: "Test7.html?exam=TOEFL" },
+      { name: "IELTS", link: "Test7.html?exam=IELTS" },
+      { name: "BITSAT", link: "Test7.html?exam=BITSAT" },
+      { name: "VITEEE", link: "Test7.html?exam=VITEEE" },
+    ];
+
+    // Function to perform search dynamically while typing
+    function performSearch() {
+  const query = document.getElementById("searchInput").value.trim().toLowerCase();
+  const dropdownResults = document.getElementById("dropdownResults");
+
+  // Clear previous results
+  dropdownResults.innerHTML = "";
+
+  if (query === "") {
+    dropdownResults.style.display = "none";
+    return;
+  }
+
+  // Filter exams based on the query
+  const filteredExams = exams.filter((exam) =>
+    exam.name.toLowerCase().includes(query)
+  );
+
+  // If no results, show "No results found" message
+  if (filteredExams.length === 0) {
+    const noResultsMessage = document.createElement("div");
+    noResultsMessage.className = "dropdown-item";
+    noResultsMessage.textContent = "No results found";
+    noResultsMessage.style.color = "#888"; // Optional: Make it visually distinct
+    dropdownResults.appendChild(noResultsMessage);
+    dropdownResults.style.display = "block";
+    return;
+  }
+
+  // Display filtered results
+  filteredExams.forEach((exam) => {
+    const resultItem = document.createElement("div");
+    resultItem.className = "dropdown-item";
+    resultItem.textContent = exam.name;
+
+    // Redirect to the link when a result is clicked
+    resultItem.onclick = () => {
+      window.location.href = exam.link;
+    };
+
+    dropdownResults.appendChild(resultItem);
+  });
+
+  dropdownResults.style.display = "block";
+}
+
+  </script>
+</body>
+</html>

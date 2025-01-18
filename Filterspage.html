@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pakage Filter Page</title>
+    <link rel="stylesheet" href="Style/commonfilterpage.css">
+</head>
+<body>
+
+    <!-- Header Section -->
+    <header class="header">
+        <div class="logo-container">
+            <img src="assets/Images/Logo.png" alt="Logo" class="logo">
+        </div>
+    </header>
+
+    <!-- Sidebar Section - Will be dynamically loaded here -->
+    <div class="sidebar">
+        <!-- Sidebar content will be injected here -->
+    </div>
+
+    <!-- Main Content Section -->
+    <div class="main-content" id="mainContent">
+        <!-- Pakages will be dynamically added here -->
+    </div>
+
+    <script type="module">
+        // Import fetchData from a static location
+        import { fetchData } from './fetchdata.js';
+
+        // Utility function to extract query parameters
+        const getQueryParam = (key) => {
+            const params = new URLSearchParams(window.location.search);
+            return params.get(key);
+        };
+
+        // Get the category (exam) from the URL
+        const exam = getQueryParam('exam');
+
+        if (!exam) {
+            // Show error if exam parameter is missing
+            document.body.innerHTML = '<p>Error: No exam category specified in the URL.</p>';
+            throw new Error('Exam category not specified in URL.');
+        }
+
+        // Dynamically load category-specific modules
+        const toggleFilterModulePath = `./${exam}/toggleFilters.js`;
+        const applyFilterModulePath = `./${exam}/applyfilters.js`;
+        const eventListenersModulePath = `./${exam}/eventlistners.js`;
+        const featuresModulePath = `./${exam}/features.js`;
+        
+
+        let allData = [];
+        let sortedData = [];
+
+        // Function to load the sidebar dynamically
+        const loadSidebar = async () => {
+            try {
+                const response = await fetch(`./${exam}/sidebar.html`);
+                if (response.ok) {
+                    const sidebarHTML = await response.text();
+                    document.querySelector('.sidebar').innerHTML = sidebarHTML;
+
+                    // Dynamically import the event listeners and attach them
+                    const { attachEventListeners } = await import(eventListenersModulePath);
+                    const { toggleFilter } = await import(toggleFilterModulePath);
+                    const { applyFilter, resetFilters } = await import(applyFilterModulePath);
+
+                    attachEventListeners(allData, toggleFilter, applyFilter, resetFilters, displayPakages);
+                } else {
+                    throw new Error(`Sidebar not found for exam category: ${exam}`);
+                }
+            } catch (error) {
+                console.error('Error fetching sidebar:', error);
+                document.querySelector('.sidebar').innerHTML = `<p>Error: Sidebar not available for ${exam}.</p>`;
+            }
+        };
+
+        // Dynamically import the features module and define displayPakages
+    let calculateSpaces;
+    import(featuresModulePath)
+        .then((module) => {
+            calculateSpaces = module.calculateSpaces;
+        })
+        .catch((error) => {
+            console.error('Error loading features module:', error);
+        });
+
+        const displayPakages = (data) => {
+            const mainContent = document.getElementById('mainContent');
+            mainContent.innerHTML = ''; // Clear previous content
+
+            if (data.length === 0) {
+                mainContent.innerHTML = '<p>No packages available.</p>';
+                return;
+            }
+
+            data.forEach(pakage => {
+                const { S1, S2, S3, S4, S5, S6 } = calculateSpaces(pakage);
+                //console.log("Calculated Spaces:", { S1, S2, S3, S4, S5, S6 });
+
+                const pakageBox = document.createElement('div');
+                pakageBox.className = 'pakage-box';
+
+                pakageBox.innerHTML = `
+                    <img 
+        src="${pakage.coachinglogo}" 
+        alt="${pakage.Coaching_Name} Image" 
+        class="package-image" 
+        onerror="this.src='assets/Images/Logo.png'; this.onerror=null;" 
+    >
+                    <div class="pakage-details">
+                        <h3>${pakage.Coaching_Name} | ${pakage.Program_Name}</h3>
+                        <p class="meta" >Type: ${pakage.Coaching_type}</p>
+                        <p class="meta" >Subjects: ${pakage.Subjects}</p>
+                        <p class="meta" >L2 Classification: ${pakage.L2_Classification}</p>
+
+                        <p>${S1}</p>
+                        <p>${S2}  ${S3}</p>
+                        <p>${S4} ${S5} ${S6}</p>
+
+                        <p class="price">₹${pakage.Fees}</p>
+                    </div>
+                `;
+                mainContent.appendChild(pakageBox);
+            });
+        };
+
+
+        // Fetch data and initialize the page
+        fetchData()
+            .then(data => {
+                allData = data;
+                sortedData = [...data];
+
+                // Dynamically import the filter modules
+                Promise.all([
+                    import(toggleFilterModulePath),
+                    import(applyFilterModulePath)
+                ])
+                .then(([toggleFilterModule, applyFilterModule]) => {
+                    const { toggleFilter } = toggleFilterModule;
+                    const { applyFilter } = applyFilterModule;
+
+                    // Apply filters and display pakages
+                    applyFilter(allData, toggleFilter, displayPakages);
+                })
+                .catch(error => {
+                    console.error('Error loading filter modules:', error);
+                });
+
+                // Load the sidebar
+                loadSidebar();
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+                document.getElementById('mainContent').innerHTML = 
+                    '<p>Failed to load pakages. Please try again later.</p>';
+            });
+    </script>
+
+</body>
+</html>
